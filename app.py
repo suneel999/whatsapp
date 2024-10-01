@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import requests
 import os
-import mysql.connector
-from datetime import datetime
+import psycopg2
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 app.secret_key = 'raj'
@@ -33,12 +33,20 @@ departments = {
 
 # Connect to the MySQL Database
 def get_db_connection():
-    connection = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='Raju7799@',
-        database='hospital_appointments'
+    # Get the DATABASE_URL from environment variable
+    DATABASE_URL = os.getenv('DATABASE_URL')
+
+    # Parse the database URL and extract the connection details
+    url = urlparse(DATABASE_URL)
+
+    connection = psycopg2.connect(
+        database=url.path[1:],  # Skip the leading '/'
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
     )
+
     return connection
 def fetch_available_dates():
     conn = get_db_connection()
